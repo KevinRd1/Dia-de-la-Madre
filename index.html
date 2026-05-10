@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💐 Feliz Día de la Madre</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Dancing+Script:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo/style.css">
+</head>
+<body>
+
+  <!-- ── Floating Petals (JS populates this) ── -->
+  <div id="particles-container"></div>
+
+  <!-- ── Hearts: Basilia effect (JS populates this) ── -->
+  <div id="hearts-container"></div>
+
+  <!-- ════════════════════════════════════════
+       MUSIC PANEL (top-right, always visible)
+       ════════════════════════════════════════ -->
+  <div class="music-wrap" id="music-wrap">
+
+    <!-- FAB button that opens the panel -->
+    <button class="music-fab" id="music-fab" onclick="toggleMusicPanel()" title="Control de música">
+      🎵
+    </button>
+
+    <!-- Expandable control panel -->
+    <div class="music-panel" id="music-panel">
+      <div class="mp-title">🎵 Control de Música</div>
+
+      <!-- Currently playing label -->
+      <div class="mp-now-playing" id="mp-now-playing">Sin música cargada</div>
+
+      <!-- Play/Pause + Volume -->
+      <div class="mp-controls-row">
+        <button class="mp-playpause" id="mp-playpause" onclick="toggleMusicPlay()" title="Reproducir / Pausar">
+          ▶
+        </button>
+        <div class="mp-vol-row">
+          <span class="mp-vol-icon">🔉</span>
+          <input
+            type="range" class="vol-slider" id="vol-slider"
+            min="0" max="100" value="25"
+            oninput="setVolume(this.value)"
+            title="Volumen"
+          >
+          <span class="mp-vol-icon">🔊</span>
+        </div>
+      </div>
+
+      <div class="mp-sep"></div>
+
+      <!-- 🎵 Música precargada — para cambiarla edita MUSIC_URL en app.js -->
+      <div class="mp-status" id="mp-status">🎶 Música del Día de la Madre</div>
+    </div>
+  </div><!-- /music-wrap -->
+
+  <!-- ════════════════════════════════════════
+       HIDDEN ADMIN TRIGGER
+       Cambia el src de la imagen a la URL que desees.
+       El botón se ve como una imagen decorativa.
+       ════════════════════════════════════════ -->
+  <button
+    class="admin-trigger"
+    onclick="openAdminModal()"
+    title=""
+    aria-label="admin"
+  >
+    <img
+      id="admin-img"
+      src="https://i.imgur.com/QCNbOAo.png"
+      alt=""
+      onerror="this.src='data:image/svg+xml,
+        %3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2244%22 height=%2244%22%3E
+        %3Ccircle cx=%2222%22 cy=%2222%22 r=%2222%22 fill=%22%23f4b8c4%22 opacity=%22.4%22/%3E
+        %3Ctext x=%2250%25%22 y=%2255%25%22 font-size=%2222%22 text-anchor=%22middle%22
+        dominant-baseline=%22middle%22%3E🌸%3C/text%3E%3C/svg%3E'"
+    >
+  </button>
+
+  <!-- ════════════════════════════════════════
+       SCREEN 1: WELCOME
+       ════════════════════════════════════════ -->
+  <section id="scr-welcome" class="screen active">
+    <div class="welcome-card">
+
+      <!-- Title area -->
+      <div class="welcome-icon">💐</div>
+      <h1 class="welcome-title">Feliz Día de<br>la Madre</h1>
+      <p class="welcome-sub">Con mucho amor, para ti ✨</p>
+
+      <!-- ── COUNTDOWN (JS renders content here) ── -->
+      <div class="countdown-wrap" id="countdown-wrap"></div>
+
+      <!-- ── FORM ── -->
+      <div class="form-group">
+        <label class="form-label" for="sel-role">¿Quién eres para mí?</label>
+        <select id="sel-role" class="form-control">
+          <option value="">— Selecciona una opción —</option>
+          <option value="mama">Mamá 💕</option>
+          <option value="prima">Prima 🌷</option>
+          <option value="tia">Tía 🌺</option>
+          <option value="abuela">Abuela 🌸</option>
+        </select>
+        <span class="err-msg" id="err-role">Por favor selecciona una opción.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="inp-name">Tu nombre</label>
+        <input
+          type="text" id="inp-name" class="form-control"
+          placeholder="Escribe tu nombre aquí..."
+          maxlength="60" autocomplete="off"
+          onkeydown="if(event.key==='Enter') submitForm()"
+        >
+        <span class="err-msg" id="err-name">Por favor escribe tu nombre.</span>
+      </div>
+
+      <button class="btn-go" onclick="submitForm()">Ver mi mensaje 💌</button>
+
+    </div>
+  </section><!-- /scr-welcome -->
+
+  <!-- ════════════════════════════════════════
+       SCREEN 2: CARD
+       ════════════════════════════════════════ -->
+  <section id="scr-card" class="screen">
+    <button class="back-btn" onclick="goBack()">← Volver</button>
+    <!-- Card content injected by app.js -->
+    <div class="card-wrap" id="card-content"></div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       SCREEN 3: ADMIN DASHBOARD
+       ════════════════════════════════════════ -->
+  <section id="scr-admin" class="screen">
+
+    <div class="admin-hdr">
+      <div class="admin-hdr-left">
+        <h2 class="admin-h2">Panel de Administración 🔒</h2>
+        <span class="sessions-badge" id="sessions-count">0 sesiones</span>
+      </div>
+      <div class="admin-actions">
+        <button class="btn-export" onclick="exportJSON()" title="Descargar sesiones como JSON">
+          ⬇ Exportar JSON
+        </button>
+        <button class="btn-logout" onclick="adminLogout()">
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+
+    <!-- Sessions table (injected by app.js) -->
+    <div class="tbl-wrap">
+      <div id="sessions-list"></div>
+    </div>
+
+    <div class="admin-footer">
+      <button class="btn-clear" onclick="clearSessions()">🗑 Limpiar registros</button>
+    </div>
+
+  </section><!-- /scr-admin -->
+
+  <!-- ════════════════════════════════════════
+       MODAL: ADMIN LOGIN
+       ════════════════════════════════════════ -->
+  <div class="overlay" id="modal-admin">
+    <div class="modal-box">
+      <h3 class="modal-title">🔐 Acceso Administrador</h3>
+
+      <div class="modal-grp">
+        <label class="modal-lbl">Usuario</label>
+        <input
+          type="text" class="modal-inp" id="m-user"
+          placeholder="Usuario" autocomplete="off"
+        >
+      </div>
+
+      <div class="modal-grp">
+        <label class="modal-lbl">Contraseña</label>
+        <input
+          type="password" class="modal-inp" id="m-pass"
+          placeholder="••••••••"
+          onkeydown="if(event.key==='Enter') doLogin()"
+        >
+      </div>
+
+      <p class="modal-err" id="login-err">Usuario o contraseña incorrectos.</p>
+
+      <button class="btn-admin-ok" onclick="doLogin()">Entrar</button>
+      <button class="btn-admin-cancel" onclick="closeAdminModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- ── Audio element (main music player) ── -->
+  <audio id="bg-audio" loop preload="none"></audio>
+
+  <!-- ── Load application logic ── -->
+  <script src="logica/app.js"></script>
+
+</body>
+</html>

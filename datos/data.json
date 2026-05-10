@@ -1,0 +1,43 @@
+{
+  "_comentario": "Este archivo define la estructura de datos del Día de la Madre.",
+  "_version": "1.0",
+  "_autor": "KEVIN RD",
+
+  "_almacenamiento": {
+    "tipo": "localStorage del navegador",
+    "clave": "md_sessions",
+    "nota": "Los datos se guardan automáticamente en el navegador del visitante. Usa el botón '⬇ Exportar JSON' en el panel de admin para descargar este archivo con las sesiones reales."
+  },
+
+  "_estructura_sesion": {
+    "name": "Nombre del visitante (string, tal como lo escribió)",
+    "role": "Relación seleccionada: mama | prima | tia | abuela (string)",
+    "ts":   "Timestamp en formato ISO 8601 — Ej: 2026-05-10T14:30:00.000Z (string)"
+  },
+
+  "_nombres_especiales": {
+    "mama":   ["Lisbeth"],
+    "prima":  ["Vianka", "Natalia"],
+    "tia":    ["Tatiana", "Jessenia", "Sandra"],
+    "abuela": ["Basilia"]
+  },
+
+  "_efectos_especiales": {
+    "Lisbeth":  "Poema mostrado sobre pentagrama musical (líneas de pauta + clave de sol)",
+    "Basilia":  "Animación de corazones flotantes al cargar la tarjeta"
+  },
+
+  "_credenciales_admin": {
+    "nota":   "No compartir. Solo para uso interno del administrador.",
+    "user":   "kev1nrd",
+    "pass":   "34113RD"
+  },
+
+  "_musica": {
+    "nota":       "Carga tu propia música desde el panel de control de música (ícono 🎵 arriba a la derecha).",
+    "opciones":   ["URL directa a archivo .mp3 / .ogg / .wav", "Archivo local desde tu dispositivo"],
+    "volumen":    "Ajustable con el slider del panel (0–100%)"
+  },
+
+  "sessions": []
+}
