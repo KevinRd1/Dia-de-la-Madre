@@ -168,7 +168,7 @@ var countdownInterval = null;
 function getMothersDayTarget() {
   var now  = new Date();
   var year = now.getFullYear();
-  var md   = new Date(year, 4, 13, 0, 0, 0); // 27 de mayo (mes 4 = mayo, 0-indexed)
+  var md   = new Date(year, 4, 14, 0, 0, 0); // 27 de mayo (mes 4 = mayo, 0-indexed)
 
   // Si ya pasó el 27 de mayo de este año → contar al siguiente
   var dayAfter = new Date(year, 4, 28, 0, 0, 0);
@@ -181,7 +181,7 @@ function getMothersDayTarget() {
 /** Devuelve true si HOY es el Día de la Madre (27 de mayo o después) */
 function isMothersDayToday() {
   var now = new Date();
-  return now.getMonth() === 4 && now.getDate() >= 13;
+  return now.getMonth() === 4 && now.getDate() >= 14;
 }
 
 /** Renderiza el bloque de countdown en #countdown-wrap */
