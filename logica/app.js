@@ -1,4 +1,3 @@
-
 'use strict';
 
 /* ════════════════════════════════════════════════
@@ -9,13 +8,14 @@ var musicPlaying = false;
 var musicLoaded  = false;
 var panelOpen    = false;
 
-var src="musica/madre.mp3"; // ⬅️ CAMBIA ESTA URL por tu música
-// ⬆️ CAMBIA SOLO ESA LÍNEA con tu música favorita
+var src = "musica/madre.mp3"; // ⬅️ CAMBIA ESTA LÍNEA con la ruta o URL de tu música
+// ⬆️ Ejemplos:
+//    var src = "musica/despacito.mp3";            → archivo local en carpeta musica/
+//    var src = "https://tusitio.com/cancion.mp3"; → URL directa a un .mp3
 
-/** Intenta reproducir la música automáticamente al cargar la página */
 function tryAutoPlay() {
   if (!src) return;
-  audio.src = src;
+  audio.src    = src;
   audio.volume = 0.25;
   audio.load();
   audio.play()
@@ -25,7 +25,6 @@ function tryAutoPlay() {
       updatePlayerUI('🎶 Música del Día de la Madre');
     })
     .catch(function () {
-      // El navegador bloqueó el autoplay — se activa al primer clic del usuario
       musicLoaded = true;
       document.addEventListener('click', function startOnClick() {
         if (!musicPlaying) {
@@ -39,15 +38,12 @@ function tryAutoPlay() {
     });
 }
 
-/** Abre o cierra el panel de música */
 function toggleMusicPanel() {
   panelOpen = !panelOpen;
   var panel = document.getElementById('music-panel');
   var fab   = document.getElementById('music-fab');
   panel.classList.toggle('show', panelOpen);
   fab.classList.toggle('active', panelOpen);
-
-  // Cerrar al hacer click fuera
   if (panelOpen) {
     setTimeout(function () {
       document.addEventListener('click', closePanelOutside, { once: true });
@@ -64,28 +60,22 @@ function closePanelOutside(e) {
   }
 }
 
-/** Carga audio desde una URL directa */
 function loadFromUrl() {
   var url = document.getElementById('music-url-inp').value.trim();
-  if (!url) {
-    setMusicStatus('⚠️ Escribe una URL válida.', true);
-    return;
-  }
+  if (!url) { setMusicStatus('⚠️ Escribe una URL válida.', true); return; }
   audio.src = url;
   audio.load();
   audio.play()
     .then(function () {
-      musicLoaded  = true;
-      musicPlaying = true;
+      musicLoaded = true; musicPlaying = true;
       updatePlayerUI(url.split('/').pop() || 'Audio desde URL');
       setMusicStatus('✅ Reproduciendo desde URL');
     })
     .catch(function () {
-      setMusicStatus('❌ No se pudo cargar la URL. Verifica que sea un archivo de audio directo.', true);
+      setMusicStatus('❌ No se pudo cargar. Verifica que sea un .mp3 directo.', true);
     });
 }
 
-/** Carga audio desde un archivo local */
 function loadFromFile(file) {
   if (!file) return;
   var objUrl = URL.createObjectURL(file);
@@ -93,33 +83,20 @@ function loadFromFile(file) {
   audio.load();
   audio.play()
     .then(function () {
-      musicLoaded  = true;
-      musicPlaying = true;
+      musicLoaded = true; musicPlaying = true;
       updatePlayerUI(file.name);
       setMusicStatus('✅ Reproduciendo: ' + file.name);
     })
-    .catch(function () {
-      setMusicStatus('❌ Error al cargar el archivo.', true);
-    });
+    .catch(function () { setMusicStatus('❌ Error al cargar el archivo.', true); });
 }
 
-/** Alterna reproducción / pausa */
 function toggleMusicPlay() {
-  if (!musicLoaded) {
-    setMusicStatus('⚠️ Carga una canción primero (URL o archivo).', true);
-    return;
-  }
-  if (musicPlaying) {
-    audio.pause();
-    musicPlaying = false;
-  } else {
-    audio.play().catch(function () {});
-    musicPlaying = true;
-  }
+  if (!musicLoaded) { setMusicStatus('⚠️ Carga una canción primero.', true); return; }
+  if (musicPlaying) { audio.pause(); musicPlaying = false; }
+  else              { audio.play().catch(function () {}); musicPlaying = true; }
   updatePlayPauseBtn();
 }
 
-/** Inicia música automáticamente al abrir la tarjeta (si ya está cargada) */
 function autoPlayIfLoaded() {
   if (musicLoaded && !musicPlaying) {
     audio.play().catch(function () {});
@@ -128,28 +105,23 @@ function autoPlayIfLoaded() {
   }
 }
 
-/** Ajusta el volumen (0–100) */
 function setVolume(val) {
   var pct = Math.min(100, Math.max(0, parseInt(val, 10)));
   audio.volume = pct / 100;
-  // Actualiza color del slider via CSS custom property
   document.getElementById('vol-slider').style.setProperty('--vol', pct + '%');
 }
 
-/** Actualiza el botón ▶/⏸ */
 function updatePlayPauseBtn() {
   var btn = document.getElementById('mp-playpause');
   if (btn) btn.textContent = musicPlaying ? '⏸' : '▶';
 }
 
-/** Actualiza el nombre del archivo en "ahora reproduciendo" */
 function updatePlayerUI(name) {
   var el = document.getElementById('mp-now-playing');
   if (el) el.textContent = '♪ ' + name;
   updatePlayPauseBtn();
 }
 
-/** Muestra mensaje de estado en el panel */
 function setMusicStatus(msg, isError) {
   var el = document.getElementById('mp-status');
   if (!el) return;
@@ -160,37 +132,28 @@ function setMusicStatus(msg, isError) {
 }
 
 /* ════════════════════════════════════════════════
-   2. COUNTDOWN — 10 de mayo (Día de la Madre)
+   2. COUNTDOWN — 27 de mayo (Día de la Madre)
    ════════════════════════════════════════════════ */
 var countdownInterval = null;
 
-/** Devuelve la próxima fecha del Día de la Madre (27 de mayo) */
 function getMothersDayTarget() {
   var now  = new Date();
   var year = now.getFullYear();
-  var md   = new Date(year, 4, 14, 0, 0, 0); // 27 de mayo (mes 4 = mayo, 0-indexed)
-
-  // Si ya pasó el 27 de mayo de este año → contar al siguiente
-  var dayAfter = new Date(year, 4, 28, 0, 0, 0);
-  if (now >= dayAfter) {
-    md = new Date(year + 1, 4, 27, 0, 0, 0);
-  }
+  var md   = new Date(year, 4, 27, 0, 0, 0);
+  if (now >= new Date(year, 4, 28, 0, 0, 0)) md = new Date(year + 1, 4, 27, 0, 0, 0);
   return md;
 }
 
-/** Devuelve true si HOY es el Día de la Madre (27 de mayo o después) */
 function isMothersDayToday() {
   var now = new Date();
-  return now.getMonth() === 4 && now.getDate() >= 14;
+  return now.getMonth() === 4 && now.getDate() >= 27;
 }
 
-/** Renderiza el bloque de countdown en #countdown-wrap */
 function renderCountdown() {
   var wrap = document.getElementById('countdown-wrap');
   if (!wrap) return;
 
   if (isMothersDayToday()) {
-    // ¡Es el día!
     wrap.innerHTML =
       '<div class="countdown-today">' +
         '🌹 ¡Hoy es el Día de la Madre! 🌹' +
@@ -199,7 +162,6 @@ function renderCountdown() {
     return;
   }
 
-  // Primero pintamos la estructura
   wrap.innerHTML =
     '<div class="countdown-lbl">Faltan para el Día de la Madre (27 de mayo) 🌹</div>' +
     '<div class="countdown-grid">' +
@@ -209,32 +171,21 @@ function renderCountdown() {
       '<div class="cd-unit"><span class="cd-num" id="cd-s">--</span><span class="cd-lbl">Seg</span></div>' +
     '</div>';
 
-  // Actualizamos cada segundo
   function tick() {
-    var now    = new Date();
-    var target = getMothersDayTarget();
-    var diff   = Math.max(0, target - now);
-
+    var diff = Math.max(0, getMothersDayTarget() - new Date());
     var d = Math.floor(diff / 86400000);
     var h = Math.floor((diff % 86400000) / 3600000);
     var m = Math.floor((diff % 3600000)  / 60000);
     var s = Math.floor((diff % 60000)    / 1000);
-
     var elD = document.getElementById('cd-d');
     var elH = document.getElementById('cd-h');
     var elM = document.getElementById('cd-m');
     var elS = document.getElementById('cd-s');
-
     if (elD) elD.textContent = pad(d);
     if (elH) elH.textContent = pad(h);
     if (elM) elM.textContent = pad(m);
     if (elS) elS.textContent = pad(s);
-
-    // Si llega el día mientras la página está abierta
-    if (diff === 0) {
-      clearInterval(countdownInterval);
-      renderCountdown();
-    }
+    if (diff === 0) { clearInterval(countdownInterval); renderCountdown(); }
   }
 
   tick();
@@ -251,13 +202,13 @@ function createPetals() {
   var container = document.getElementById('particles-container');
   var emojis    = ['🌸', '🌹', '🌺', '🌷', '💐', '🌼'];
   for (var i = 0; i < 14; i++) {
-    var el = document.createElement('div');
-    el.className    = 'petal';
-    el.textContent  = emojis[Math.floor(Math.random() * emojis.length)];
-    el.style.left             = (Math.random() * 100) + 'vw';
-    el.style.fontSize         = (.9 + Math.random() * 1.2) + 'rem';
-    el.style.animationDuration  = (9 + Math.random() * 12) + 's';
-    el.style.animationDelay     = (Math.random() * 12) + 's';
+    var el            = document.createElement('div');
+    el.className      = 'petal';
+    el.textContent    = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left              = (Math.random() * 100) + 'vw';
+    el.style.fontSize          = (.9 + Math.random() * 1.2) + 'rem';
+    el.style.animationDuration   = (9 + Math.random() * 12) + 's';
+    el.style.animationDelay      = (Math.random() * 12) + 's';
     container.appendChild(el);
   }
 }
@@ -269,15 +220,14 @@ function startHearts() {
   var container = document.getElementById('hearts-container');
   var emojis    = ['❤️', '💕', '💖', '💗', '💓', '💝', '💞', '🌹'];
   var count = 0, max = 65;
-
   var iv = setInterval(function () {
     if (count >= max) { clearInterval(iv); return; }
-    var el = document.createElement('div');
-    el.className    = 'heart';
-    el.textContent  = emojis[Math.floor(Math.random() * emojis.length)];
-    el.style.left             = (Math.random() * 100) + 'vw';
-    el.style.fontSize         = (1.2 + Math.random() * 2) + 'rem';
-    el.style.animationDuration  = (4 + Math.random() * 5) + 's';
+    var el            = document.createElement('div');
+    el.className      = 'heart';
+    el.textContent    = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left              = (Math.random() * 100) + 'vw';
+    el.style.fontSize          = (1.2 + Math.random() * 2) + 'rem';
+    el.style.animationDuration   = (4 + Math.random() * 5) + 's';
     container.appendChild(el);
     setTimeout(function () { el.remove(); }, 9000);
     count++;
@@ -285,13 +235,7 @@ function startHearts() {
 }
 
 /* ════════════════════════════════════════════════
-   5. SESSIONS (localStorage / JSON export)
-   ════════════════════════════════════════════════
-   Estructura guardada en localStorage['md_sessions']:
-   [
-     { "name":"Lisbeth", "role":"mama", "ts":"2026-05-10T10:30:00.000Z" },
-     ...
-   ]
+   5. SESSIONS
    ════════════════════════════════════════════════ */
 var STORAGE_KEY = 'md_sessions';
 
@@ -306,41 +250,43 @@ function saveSession(name, role) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
 }
 
-/**
- * Exporta las sesiones como archivo data.json descargable.
- * El formato es compatible con data.json (estructura definida en ese archivo).
- */
 function exportJSON() {
-  var sessions = getSessions();
-  var payload  = {
-    _info:      'Sesiones — Día de la Madre',
-    _version:   '1.0',
+  var payload = {
+    _info: 'Sesiones — Día de la Madre',
+    _version: '1.0',
     _exportado: new Date().toISOString(),
-    _estructura: {
-      name: 'Nombre del visitante (string)',
-      role: 'mama | prima | tia | abuela (string)',
-      ts:   'Timestamp ISO 8601 (string)'
-    },
-    sessions: sessions
+    sessions: getSessions()
   };
-  var json = JSON.stringify(payload, null, 2);
-  var blob = new Blob([json], { type: 'application/json' });
+  var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
-  a.href     = url;
-  a.download = 'sesiones-dia-madre.json';
-  document.body.appendChild(a);
-  a.click();
+  a.href = url; a.download = 'sesiones-dia-madre.json';
+  document.body.appendChild(a); a.click();
   document.body.removeChild(a);
   setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
 }
 
 /* ════════════════════════════════════════════════
-   6. POEMS
+   6. NOMBRES REGISTRADOS
+   ════════════════════════════════════════════════
+   Mamá   → solo Lisbeth            (otros: bloqueado)
+   Prima  → solo Vianka y Natalia   (otros: bloqueado)
+   Abuela → solo Basilia            (otros: bloqueado)
+   Tía    → cualquier nombre        (sin restricción)
+   ════════════════════════════════════════════════ */
+var REGISTERED = {
+  mama:   ['lisbeth'],
+  prima:  ['vianka', 'natalia'],
+  abuela: ['basilia'],
+  tia:    null   // null = sin restricción
+};
+
+/* ════════════════════════════════════════════════
+   7. POEMS & FRASES
    ════════════════════════════════════════════════ */
 var P = {
 
-  /* ─── MAMÁ ─── */
+  /* ─── MAMÁ — Lisbeth ─── */
   mama_lisbeth:
 'Viejita,\n\n' +
 'Hoy quiero que sepas que cada cosa que hago bien tiene un pedacito de ti. ' +
@@ -354,22 +300,9 @@ var P = {
 'No necesito un día especial para decirte esto, pero hoy te lo grito: ' +
 'gracias por ser mi mamá, mi refugio, mi mayor fan y mi casa. ' +
 'Ojalá algún día yo pueda devolverte aunque sea la mitad de lo que me diste. ' +
-'Te mereces el mundo entero.\n\n' +
-'Te amo con todo. Feliz día de la madre.',
+'Te mereces el mundo entero.\n\nTe amo con todo. Feliz día de la madre.',
 
-  mama_gen: function (n) {
-    return n + ',\n\n' +
-'En este día tan especial, quiero que sepas que hay un corazón que piensa en ti ' +
-'con todo el amor del mundo.\n\n' +
-'Ser mamá es el trabajo más difícil y más hermoso del mundo, ' +
-'y tú lo haces con una gracia que no pasa desapercibida. ' +
-'Cada día, con cada gesto, con cada palabra, vas dejando huella ' +
-'en quienes más te quieren.\n\n' +
-'Que hoy y siempre te sientas amada, valorada y celebrada. ' +
-'Porque te lo mereces.\n\nFeliz Día de la Madre.';
-  },
-
-  /* ─── PRIMA ─── */
+  /* ─── PRIMA — Vianka ─── */
   prima_vianka:
 'Vianka,\n\n' +
 'Hoy que el mundo celebra a las madres, quiero celebrarte también a ti, ' +
@@ -380,9 +313,9 @@ var P = {
 'Lo que das cada día, lo que sacrificas, lo que construyes con amor, ' +
 'merece ser celebrado hoy con todo el corazón.\n\n' +
 'Que este día te traiga todo lo que mereces: descanso, alegría, ' +
-'y la certeza de que lo que haces importa.\n\n' +
-'Feliz Día de la Madre, Vianka. Te lo mereces todo.',
+'y la certeza de que lo que haces importa.\n\nFeliz Día de la Madre, Vianka. Te lo mereces todo.',
 
+  /* ─── PRIMA — Natalia ─── */
   prima_natalia:
 'Natalia,\n\n' +
 'No hay palabras exactas para describir lo que significa tenerte como prima, ' +
@@ -393,44 +326,12 @@ var P = {
 'porque la ternura y el amor que llevas dentro merecen un día así.\n\n' +
 'Que hoy sea tuyo, Natalia. Que alguien te cuide, que alguien te mime, ' +
 'que alguien te diga lo que ya sabes: que eres especial, ' +
-'y que este mundo es mejor contigo en él.\n\n' +
-'Feliz Día de la Madre. Con mucho cariño.',
+'y que este mundo es mejor contigo en él.\n\nFeliz Día de la Madre. Con mucho cariño.',
 
-  prima_gen: [
-    function (n) {
-      return n + ',\n\n' +
-'No siempre tenemos las palabras exactas para decir lo que sentimos, ' +
-'pero hoy es uno de esos días en que hay que intentarlo.\n\n' +
-'Eres parte de mi historia, de mis recuerdos, de esa red invisible ' +
-'que llamamos familia y que sostiene cuando todo lo demás falla.\n\n' +
-'En este Día de la Madre, quiero celebrarte a ti también. ' +
-'Por tu amor, por tu fuerza, por ser quien eres.\n\n' +
-'Feliz Día. Con todo el cariño.';
-    },
-    function (n) {
-      return n + ',\n\n' +
-'Hay lazos que el tiempo no rompe, y el nuestro es uno de esos. ' +
-'Crecer juntos es un regalo, y llegar hasta acá, otro más.\n\n' +
-'Hoy que se celebra el amor más puro, quiero que sientas ' +
-'que tu amor también se celebra, que lo que das importa, ' +
-'que quién eres importa.\n\n' +
-'Feliz Día de la Madre. Que este día sea tan especial como tú.';
-    },
-    function (n) {
-      return n + ',\n\n' +
-'Las primas especiales no solo se llevan en la sangre, se llevan en el alma. ' +
-'Y tú eres de esas.\n\n' +
-'Hoy, en este día tan bonito, te deseo todo lo que mereces: ' +
-'paz, alegría, mucho amor y todo lo que has soñado.\n\n' +
-'Feliz Día de la Madre. Siempre aquí, contigo.';
-    }
-  ],
-
-  /* ─── TÍA ─── */
+  /* ─── TÍA — Tatiana ─── */
   tia_tatiana:
 'Tatiana,\n\n' +
-'Hay tías que son solo tías, y hay tías que son mucho más. ' +
-'Tú eres de las segundas.\n\n' +
+'Hay tías que son solo tías, y hay tías que son mucho más. Tú eres de las segundas.\n\n' +
 'Desde pequeño te vi dar amor de sobra, sin pedir nada a cambio. ' +
 'Esa forma tuya de estar, de escuchar, de aparecer cuando más se necesita, ' +
 'es un regalo que no todos tienen la suerte de recibir.\n\n' +
@@ -439,10 +340,10 @@ var P = {
 'Feliz Día de la Madre, Tatiana. Que este día esté tan lleno de amor ' +
 'como el que tú has regalado a quienes te rodean.',
 
+  /* ─── TÍA — Jessenia ─── */
   tia_jessenia:
 'Jessenia,\n\n' +
-'Hay personas que con solo estar llenan un cuarto de luz, ' +
-'y tú eres una de ellas.\n\n' +
+'Hay personas que con solo estar llenan un cuarto de luz, y tú eres una de ellas.\n\n' +
 'Como tía has sido un ejemplo de fuerza, de amor, ' +
 'de esa manera tan tuya de hacer que todo parezca posible cuando parece difícil. ' +
 'No es poca cosa. Eso vale mucho.\n\n' +
@@ -450,6 +351,7 @@ var P = {
 'con todo el amor y la gratitud que mereces.\n\n' +
 'Feliz Día de la Madre, Jessenia. Que tu día sea tan hermoso como el amor que regalas.',
 
+  /* ─── TÍA — Sandra ─── */
   tia_sandra:
 'Sandra,\n\n' +
 'La familia es un árbol que crece con el amor que cada quien aporta, ' +
@@ -461,33 +363,7 @@ var P = {
 'Que este Día de la Madre te devuelva en alegría todo lo que tú has entregado en amor.\n\n' +
 'Feliz Día, Sandra. Con todo el cariño del mundo.',
 
-  tia_gen: [
-    function (n) {
-      return n + ',\n\n' +
-'Hay amores que vienen en forma de tía: los que aparecen cuando menos los esperas, ' +
-'los que cuidan sin que se lo pidas, los que están aunque nadie los llame.\n\n' +
-'Hoy, en el Día de la Madre, ese amor también se celebra. El tuyo.\n\n' +
-'Feliz Día. Con todo el corazón.';
-    },
-    function (n) {
-      return n + ',\n\n' +
-'Quisiera que supieras lo importante que eres. ' +
-'No solo hoy, no solo en las fiestas, sino en los días sencillos, ' +
-'en los momentos que nadie fotografía pero que nadie olvida.\n\n' +
-'Gracias por ser parte de esta familia. Gracias por lo que das.\n\n' +
-'Feliz Día de la Madre. Que este día te llene de lo mismo que tú has dado: amor puro.';
-    },
-    function (n) {
-      return n + ',\n\n' +
-'Ser tía con el corazón que tú tienes es una forma de maternidad ' +
-'que no siempre se nombra, pero que siempre se siente.\n\n' +
-'Hoy que se celebra a las mujeres que cuidan, ' +
-'tú eres una de las que merece estar en ese festejo.\n\n' +
-'Feliz Día de la Madre. Te lo mereces, y mucho más.';
-    }
-  ],
-
-  /* ─── ABUELA ─── */
+  /* ─── ABUELA — Basilia ─── */
   abuela_basilia:
 'Mamita Bella,\n\n' +
 'Si hay una palabra para describir lo que eres, esa palabra es fuerza. ' +
@@ -499,184 +375,194 @@ var P = {
 'Hoy, que luchas para volver a caminar, ' +
 'quiero que sepas que cada paso que das, aunque sea pequeño, ' +
 'es para mí el más grande de los actos de valentía. ' +
-'No te rindes. Nunca te has rendido. ' +
-'Y eso me enseñó más que cualquier lección de vida.\n\n' +
+'No te rindes. Nunca te has rendido. Y eso me enseñó más que cualquier lección de vida.\n\n' +
 'Que este Día de la Madre te encuentre rodeada de amor, ' +
 'sintiendo en el aire todo lo que no siempre se dice ' +
 'pero siempre se siente entre los que te queremos.\n\n' +
 'Eres mi raíz, mi historia, mi mayor orgullo. ' +
-'Sana pronto, abuelita. Te necesitamos de pie, como siempre has estado.\n\n' +
-'Te amo infinitamente.',
-
-  abuela_gen: function (n) {
-    return n + ',\n\n' +
-'Las abuelas guardan en sus manos la calidez de todos los abrazos que alguna vez dieron, ' +
-'y en su mirada, la historia de todo el amor que han sembrado.\n\n' +
-'Tú eres de esas abuelas que no solo cuidan, sino que enseñan, que forman, ' +
-'que dejan algo hermoso en el alma de quienes te rodean.\n\n' +
-'En este Día de la Madre, quiero celebrarte a ti también. ' +
-'Porque tu amor fue y sigue siendo un regalo que atesoro cada día.\n\n' +
-'Feliz Día, abuelita. Te mereces todo lo bueno del mundo.';
-  }
+'Sana pronto, abuelita. Te necesitamos de pie, como siempre has estado.\n\nTe amo infinitamente.'
 
 }; // end P
 
-/* ════════════════════════════════════════════════
-   7. CARD BUILDER
-   ════════════════════════════════════════════════ */
+/* ─── Frases aleatorias para tías no conocidas ─── */
+var TIA_FRASES = [
+  'Las tías especiales llenan la vida de amor sin que nadie se lo pida. Eso tiene un valor enorme.',
+  'Hay personas que hacen la familia más grande y más bonita solo con estar. Tú eres una de ellas.',
+  'El amor de tía es único: cercano, cálido y siempre presente cuando más se necesita.',
+  'No hace falta verse todos los días para que alguien importe de verdad. Hoy te celebro a ti.',
+  'En este día que honra a las mujeres que cuidan y aman, tú también eres parte de eso.',
+  'Gracias por ser parte de esta familia y por todo el amor que traes consigo cada día.',
+  'Hoy es un día para celebrar a mujeres especiales. Y tú, sin duda, lo eres.',
+  'Que este día te llegue lleno de alegría, cariño y todo lo que mereces recibir.'
+];
 
-/** Escapa caracteres HTML peligrosos */
+/* ════════════════════════════════════════════════
+   8. CARD BUILDER
+   ════════════════════════════════════════════════ */
 function esc(t) {
   return String(t)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
-
-/** Convierte saltos de línea en <br> (después de escapar) */
-function br(t) { return esc(t).replace(/\n/g, '<br>'); }
-
-/** Normaliza texto: sin acentos, minúsculas, sin espacios extremos */
+function br(t)   { return esc(t).replace(/\n/g, '<br>'); }
 function norm(s) {
   return String(s).trim().toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
-
-/** Compara nombre del visitante contra lista de nombres esperados */
 function isName(input, targets) {
   var n = norm(input);
   return targets.some(function (t) { return norm(t) === n; });
 }
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
 
-/** Primera letra mayúscula, resto minúsculas */
-function capitalize(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+/* ── Tarjeta de nombre NO registrado ── */
+function buildBlockedCard(role, name) {
+  var lbl = { mama:'Mamá', prima:'Prima', abuela:'Abuela', tia:'Tía' }[role];
+  return (
+    '<div class="blocked-card">' +
+      '<div class="blocked-lock">🔒</div>' +
+      '<h2 class="blocked-title">Mensaje privado</h2>' +
+      '<p class="blocked-msg">' +
+        'Hola <strong>' + esc(name) + '</strong>, este mensaje está reservado ' +
+        'para personas especiales en la categoría <strong>' + lbl + '</strong>.<br><br>' +
+        'Tu nombre no aparece en nuestra lista. Si crees que es un error, ' +
+        'contacta a quien te compartió este enlace. 🌸' +
+      '</p>' +
+      '<button class="btn-back-blocked" onclick="goBack()">← Volver al inicio</button>' +
+    '</div>'
+  );
 }
 
 /**
- * Construye el HTML de la tarjeta y devuelve { html, heartMode }
- * @param {string} role   – mama | prima | tia | abuela
- * @param {string} rawName – nombre tal como lo escribió el usuario
+ * Construye el HTML de la tarjeta.
+ * Retorna { html, heartMode }
  */
 function buildCard(role, rawName) {
   var name      = capitalize(rawName);
   var lbl       = { mama:'Mamá 💕', prima:'Prima 🌷', tia:'Tía 🌺', abuela:'Abuela 🌸' }[role];
-  var deco      = { mama:'🌹',       prima:'🌷',        tia:'🌺',      abuela:'🌸' }[role];
+  var deco      = { mama:'🌹', prima:'🌷', tia:'🌺', abuela:'🌸' }[role];
   var poem      = '';
   var special   = '';
   var heartMode = false;
 
-  /* ── Selección de poema ── */
+  /* ── Verificar registro (mama / prima / abuela) ── */
+  var allowedNames = REGISTERED[role]; // null = tía, sin restricción
+  if (allowedNames !== null && !isName(rawName, allowedNames)) {
+    return { html: buildBlockedCard(role, name), heartMode: false };
+  }
+
+  /* ── Seleccionar poema según nombre ── */
   if (role === 'mama') {
-    if (isName(rawName, ['lisbeth'])) { poem = P.mama_lisbeth; special = 'lisbeth'; }
-    else                               { poem = P.mama_gen(name); }
+    poem    = P.mama_lisbeth;
+    special = 'lisbeth';
 
   } else if (role === 'prima') {
-    if      (isName(rawName, ['vianka']))  { poem = P.prima_vianka; }
-    else if (isName(rawName, ['natalia'])) { poem = P.prima_natalia; }
-    else {
-      var idx = norm(rawName).length % 3;
-      poem = P.prima_gen[idx](name);
-    }
+    poem = isName(rawName, ['vianka']) ? P.prima_vianka : P.prima_natalia;
 
   } else if (role === 'tia') {
-    if      (isName(rawName, ['tatiana']))  { poem = P.tia_tatiana; }
-    else if (isName(rawName, ['jessenia'])) { poem = P.tia_jessenia; }
-    else if (isName(rawName, ['sandra']))   { poem = P.tia_sandra; }
+    if      (isName(rawName, ['tatiana']))  poem = P.tia_tatiana;
+    else if (isName(rawName, ['jessenia'])) poem = P.tia_jessenia;
+    else if (isName(rawName, ['sandra']))   poem = P.tia_sandra;
     else {
-      var idx = norm(rawName).length % 3;
-      poem = P.tia_gen[idx](name);
+      /* Tía desconocida → saludo + frase aleatoria */
+      var frase = TIA_FRASES[Math.floor(Math.random() * TIA_FRASES.length)];
+      poem = '¡Feliz Día de la Madre, ' + name + '! 🌺\n\n' + frase +
+             '\n\n¡Que tengas un día tan especial como tú lo eres!';
     }
 
   } else if (role === 'abuela') {
-    if (isName(rawName, ['basilia'])) { poem = P.abuela_basilia; heartMode = true; }
-    else                               { poem = P.abuela_gen(name); }
+    poem      = P.abuela_basilia;
+    heartMode = true;
   }
 
-  /* ── Bloque de poema (pentagram para Lisbeth, normal para el resto) ── */
-  var poemBlock = '';
-  if (special === 'lisbeth') {
-    poemBlock =
-      '<div class="staff-box">' +
+  /* ── Bloque de poema ── */
+  var poemBlock = (special === 'lisbeth')
+    ? '<div class="staff-box">' +
         '<div class="staff-lines">' + Array(20).fill('<div class="staff-line"></div>').join('') + '</div>' +
         '<div class="staff-clef">𝄞</div>' +
         '<div class="staff-notes">♩ ♪ ♫ ♬</div>' +
         '<div class="staff-poem">' + br(poem) + '</div>' +
-      '</div>';
-  } else {
-    poemBlock =
-      '<div class="poem-box">' +
-        '<div class="poem-txt">' + br(poem) + '</div>' +
-      '</div>';
-  }
+      '</div>'
+    : '<div class="poem-box"><div class="poem-txt">' + br(poem) + '</div></div>';
 
-  /* ── HTML completo ── */
+  /* ── HTML de la tarjeta ── */
   var html =
-    /* Header */
     '<div class="card-header">' +
       '<div class="card-deco">' + deco + '</div>' +
       '<div class="card-role-lbl">Para mi ' + lbl + '</div>' +
       '<h2 class="card-name-h">' + esc(name) + '</h2>' +
     '</div>' +
-
-    /* Poem */
     poemBlock +
-
-    /* ──────────────────────────────────────────────
-       🖼️ CAMBIA AQUÍ LA IMAGEN 🖼️
-       Reemplaza el src="" de abajo con el enlace
-       directo de tu foto/imagen especial.
-       Ejemplo: src="https://i.imgur.com/tuFoto.jpg"
-       Puedes subir tu imagen a: https://imgur.com
-       ────────────────────────────────────────────── */
-    '<div class="img-section">' +
-      '<img ' +
-        'src="https://i.ibb.co/Fkw8R2bM/Madre.jpg" ' + // ⬅️ CAMBIA ESTA URL por tu imagen
-        'id="img-preview" class="img-preview show" ' +
-        'alt="Imagen especial para el Día de la Madre" ' +
-        'onerror="this.style.display=\'none\'"' +
-      '>' +
-    '</div>' +
-
-    /* Signature */
-    '<div class="card-sig">' +
-      '<span class="sig-txt">Con todo mi amor,<br>ATT: KEVIN RD 💕</span>' +
-    '</div>';
+    buildImageBlock(role, rawName) +
+    '<div class="card-sig"><span class="sig-txt">Con todo mi amor,<br>ATT: KEVIN RD 💕</span></div>';
 
   return { html: html, heartMode: heartMode };
 }
 
-/** Previsualiza la imagen pegada en la tarjeta */
-function previewImg(url) {
-  var img = document.getElementById('img-preview');
-  if (!img) return;
-  if (!url) { img.classList.remove('show'); return; }
-  img.src     = url;
-  img.onload  = function () { img.classList.add('show'); };
-  img.onerror = function () { img.classList.remove('show'); };
+/* ════════════════════════════════════════════════
+   IMÁGENES POR PERSONA
+   ════════════════════════════════════════════════
+   ► Busca el nombre de la persona abajo y reemplaza
+     el  ''  vacío con la URL directa de su foto.
+
+   Ejemplo:
+     imgUrl = 'https://i.imgur.com/tuFoto.jpg';
+
+   Puedes subir fotos gratis en: https://imgur.com
+   ════════════════════════════════════════════════ */
+function buildImageBlock(role, rawName) {
+  var imgUrl = '';
+
+  if (role === 'mama') {
+    imgUrl = 'https://i.ibb.co/q3djnWjM/Madre.jpg';                            // ⬅️ IMAGEN para LISBETH (Mamá)
+
+  } else if (role === 'prima') {
+    if (isName(rawName, ['vianka']))
+      imgUrl = 'https://i.ibb.co/q3djnWjM/Madre.jpg';                          // ⬅️ IMAGEN para VIANKA
+    else
+      imgUrl = 'https://i.ibb.co/q3djnWjM/Madre.jpg ';                          // ⬅️ IMAGEN para NATALIA
+
+  } else if (role === 'tia') {
+    if      (isName(rawName, ['tatiana']))  imgUrl = 'https://i.ibb.co/q3djnWjM/Madre.jpg'; // ⬅️ IMAGEN para TATIANA
+    else if (isName(rawName, ['jessenia'])) imgUrl = 'https://i.ibb.co/q3djnWjM/Madre.jpg'; // ⬅️ IMAGEN para JESSENIA
+    else if (isName(rawName, ['sandra']))   imgUrl = 'https://i.ibb.co/q3djnWjM/Madre.jpg'; // ⬅️ IMAGEN para SANDRA
+    else                                    imgUrl = 'https://i.ibb.co/q3djnWjM/Madre.jpg'; // ⬅️ IMAGEN genérica otras tías
+
+  } else if (role === 'abuela') {
+    imgUrl = 'https://i.ibb.co/q3djnWjM/Madre.jpg';                            // ⬅️ IMAGEN para BASILIA (Abuela)
+  }
+
+  if (!imgUrl) return ''; // sin URL → no mostrar sección de imagen
+
+  return (
+    '<div class="img-section">' +
+      '<img src="' + imgUrl + '" class="img-preview show" alt="Imagen especial" ' +
+        'onerror="this.parentElement.style.display=\'none\'">' +
+    '</div>'
+  );
 }
 
 /* ════════════════════════════════════════════════
-   8. FORM
+   9. FORM
    ════════════════════════════════════════════════ */
 function submitForm() {
-  /* ── Bloqueo hasta el 27 de mayo ── */
+  /* Bloqueo hasta el 27 de mayo */
   if (!isMothersDayToday()) {
     var wrap = document.getElementById('countdown-wrap');
     if (wrap) {
-      wrap.style.animation = 'none';
-      wrap.style.transform = 'scale(1.05)';
-      wrap.style.transition = 'transform 0.2s';
+      wrap.style.transform  = 'scale(1.04)';
+      wrap.style.transition = 'transform .2s';
       setTimeout(function () { wrap.style.transform = ''; }, 300);
     }
     alert('💐 ¡Aún no es el momento!\nEspera hasta el 27 de mayo para abrir tu tarjeta. ¡La sorpresa vale la pena! 🌹');
     return;
   }
+
   var roleEl = document.getElementById('sel-role');
   var nameEl = document.getElementById('inp-name');
   var ok     = true;
 
-  /* Validar relación */
   if (!roleEl.value) {
     roleEl.classList.add('is-error');
     document.getElementById('err-role').classList.add('show');
@@ -686,7 +572,6 @@ function submitForm() {
     document.getElementById('err-role').classList.remove('show');
   }
 
-  /* Validar nombre */
   if (!nameEl.value.trim()) {
     nameEl.classList.add('is-error');
     document.getElementById('err-name').classList.add('show');
@@ -701,28 +586,22 @@ function submitForm() {
   var role    = roleEl.value;
   var rawName = nameEl.value.trim();
 
-  /* Guardar sesión */
   saveSession(rawName, role);
 
-  /* Construir tarjeta */
   var result = buildCard(role, rawName);
   document.getElementById('card-content').innerHTML = result.html;
 
-  /* Mostrar pantalla de tarjeta */
   showScreen('scr-card');
   window.scrollTo(0, 0);
-
-  /* Reproducir música si ya está cargada */
   autoPlayIfLoaded();
 
-  /* Efecto corazones para Basilia */
   if (result.heartMode) setTimeout(startHearts, 400);
 }
 
 function goBack() { showScreen('scr-welcome'); }
 
 /* ════════════════════════════════════════════════
-   9. SCREENS
+   10. SCREENS
    ════════════════════════════════════════════════ */
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(function (s) {
@@ -733,7 +612,7 @@ function showScreen(id) {
 }
 
 /* ════════════════════════════════════════════════
-   10. ADMIN
+   11. ADMIN
    ════════════════════════════════════════════════ */
 function openAdminModal() {
   document.getElementById('modal-admin').classList.add('show');
@@ -750,8 +629,6 @@ function closeAdminModal() {
 function doLogin() {
   var u = document.getElementById('m-user').value;
   var p = document.getElementById('m-pass').value;
-
-  /* Credenciales de administrador */
   if (u === 'kev1nrd' && p === '34113RD') {
     closeAdminModal();
     renderAdmin();
@@ -772,7 +649,6 @@ function clearSessions() {
   }
 }
 
-/** Renderiza la tabla de sesiones en el dashboard admin */
 function renderAdmin() {
   var sessions = getSessions();
   var count    = sessions.length;
@@ -787,9 +663,7 @@ function renderAdmin() {
   } else {
     html =
       '<table class="sessions-tbl">' +
-        '<thead><tr>' +
-          '<th>#</th><th>Nombre</th><th>Relación</th><th>Fecha y Hora</th>' +
-        '</tr></thead>' +
+        '<thead><tr><th>#</th><th>Nombre</th><th>Relación</th><th>Fecha y Hora</th></tr></thead>' +
         '<tbody>' +
         sessions.map(function (s, i) {
           var d  = new Date(s.ts);
@@ -804,24 +678,18 @@ function renderAdmin() {
             '</tr>'
           );
         }).join('') +
-        '</tbody>' +
-      '</table>';
+        '</tbody></table>';
   }
-
   document.getElementById('sessions-list').innerHTML = html;
 }
 
 /* ════════════════════════════════════════════════
-   11. INIT
+   12. INIT
    ════════════════════════════════════════════════ */
 (function init() {
   createPetals();
   renderCountdown();
-
-  /* Inicializar volumen del slider */
   var slider = document.getElementById('vol-slider');
   if (slider) setVolume(slider.value);
-
-  /* 🎵 Intentar reproducir música automáticamente */
   tryAutoPlay();
 })();
