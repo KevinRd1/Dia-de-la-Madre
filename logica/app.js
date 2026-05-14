@@ -139,14 +139,14 @@ var countdownInterval = null;
 function getMothersDayTarget() {
   var now  = new Date();
   var year = now.getFullYear();
-  var md   = new Date(year, 4, 27, 0, 0, 0);
+  var md   = new Date(year, 4, 14, 0, 0, 0);
   if (now >= new Date(year, 4, 28, 0, 0, 0)) md = new Date(year + 1, 4, 27, 0, 0, 0);
   return md;
 }
 
 function isMothersDayToday() {
   var now = new Date();
-  return now.getMonth() === 4 && now.getDate() >= 27;
+  return now.getMonth() === 4 && now.getDate() >= 14;
 }
 
 function renderCountdown() {
